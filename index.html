@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -154,11 +155,16 @@
         }
 
         .card-icon {
-            font-size: 1.5rem;
-            line-height: 1;
-            width: 2rem;
-            text-align: center;
+            width: 2.5rem;
+            height: 2.5rem;
             flex-shrink: 0;
+            color: var(--green);
+            filter: drop-shadow(0 0 6px rgba(51, 255, 51, 0.3));
+        }
+
+        .card-icon svg {
+            width: 100%;
+            height: 100%;
         }
 
         .card-name {
@@ -171,14 +177,14 @@
             font-size: 0.75rem;
             color: var(--text-dim);
             margin-bottom: 1rem;
-            padding-left: 2.75rem;
+            padding-left: 3.25rem;
             line-height: 1.4;
         }
 
         .card-actions {
             display: flex;
             gap: 0.5rem;
-            padding-left: 2.75rem;
+            padding-left: 3.25rem;
         }
 
         .btn {
@@ -289,21 +295,21 @@
 
     <script>
         const apps = [
-            { name: "Learn", icon: "\u{1F4DA}", desc: "Learning platform", url: "learn.notdone.dev", repo: "aarlint/learn" },
-            { name: "Hunt", icon: "\u{1F50D}", desc: "Search & discovery", url: "hunt.notdone.dev", repo: "aarlint/hunt" },
-            { name: "Lines", icon: "\u{270F}\uFE0F", desc: "Drawing & art tool", url: "lines.notdone.dev", repo: "aarlint/lines" },
-            { name: "Shredded", icon: "\u{1F4AA}", desc: "Fitness tracker", url: "shredded.notdone.dev", repo: "aarlint/shredded" },
-            { name: "Huddle", icon: "\u{1F91D}", desc: "Collaboration hub", url: "huddle.notdone.dev", repo: "aarlint/huddle" },
-            { name: "Hikes", icon: "\u{1F97E}", desc: "Trail & hiking guide", url: "hikes.notdone.dev", repo: "aarlint/hikemoms" },
-            { name: "Plant Montana", icon: "\u{1F33F}", desc: "Montana plant guide", url: "plantmontana.notdone.dev", repo: "aarlint/plantmontana" },
-            { name: "The Plan", icon: "\u{1F4CB}", desc: "Project planner", url: "theplan.notdone.dev", repo: "aarlint/theplan" },
-            { name: "World Domination", icon: "\u{1F30D}", desc: "World map game", url: "worlddomination.notdone.dev", repo: "aarlint/worlddomination" },
-            { name: "Fruit Trees", icon: "\u{1F34E}", desc: "Fruit tree tracker", url: "fruittrees.notdone.dev", repo: "aarlint/fruittrees" },
-            { name: "BT Debug", icon: "\u{1F4E1}", desc: "Bluetooth debug tool", url: "btdebug.notdone.dev", repo: "aarlint/bluetooth" },
-            { name: "Tools", icon: "\u{1F527}", desc: "Utility dashboard", url: "tools.notdone.dev", repo: "aarlint/tools" },
-            { name: "Files", icon: "\u{1F4C1}", desc: "File manager", url: "files.notdone.dev", repo: "aarlint/files" },
-            { name: "Emulator", icon: "\u{1F3AE}", desc: "Retro game emulator", url: "emulator.notdone.dev", repo: "aarlint/emulator" },
-            { name: "Expenses", icon: "\u{1F4B0}", desc: "Expense tracker", url: "expense-tracker.notdone.dev", repo: "arlintdev/expenses" }
+            { name: "Learn", icon: "book-open", desc: "Educational games and lessons for kids with profiles and progress tracking", url: "learn.notdone.dev", repo: "aarlint/learn" },
+            { name: "Hunt", icon: "map", desc: "Montana hunting app with access maps, regulations, and trip planning", url: "hunt.notdone.dev", repo: "aarlint/hunt" },
+            { name: "Lines", icon: "grid-3x3", desc: "Montana property lines viewer with parcel search and ownership lookup", url: "lines.notdone.dev", repo: "aarlint/lines" },
+            { name: "Shredded", icon: "dumbbell", desc: "Fitness community for logging lifts, tracking PRs, and achievements", url: "shredded.notdone.dev", repo: "aarlint/shredded" },
+            { name: "Huddle", icon: "video", desc: "Real-time video conferencing with WebRTC, organizations, and multi-room", url: "huddle.notdone.dev", repo: "aarlint/huddle" },
+            { name: "Hikes", icon: "mountain", desc: "Community hiking tracker for logging routes, distances, and elevation", url: "hikes.notdone.dev", repo: "aarlint/hikemoms" },
+            { name: "Plant Montana", icon: "sprout", desc: "Western Montana gardening guide with frost dates and zone recommendations", url: "plantmontana.notdone.dev", repo: "aarlint/plantmontana" },
+            { name: "The Plan", icon: "scroll", desc: "Political reform platform proposing eight policy pillars for governance", url: "theplan.notdone.dev", repo: "aarlint/theplan" },
+            { name: "World Domination", icon: "crown", desc: "Satirical political campaign for a fictional world leader", url: "worlddomination.notdone.dev", repo: "aarlint/worlddomination" },
+            { name: "Fruit Trees", icon: "apple", desc: "Western fruit tree guide with pollination partners and cold hardiness data", url: "fruittrees.notdone.dev", repo: "aarlint/fruittrees" },
+            { name: "BT Debug", icon: "radio", desc: "Bluetooth diagnostics tool for device scanning and connection monitoring", url: "btdebug.notdone.dev", repo: "aarlint/bluetooth" },
+            { name: "Tools", icon: "wrench", desc: "Developer utility suite for common tasks and code transformations", url: "tools.notdone.dev", repo: "aarlint/tools" },
+            { name: "Files", icon: "folder", desc: "File manager and editor with cloud storage and syntax highlighting", url: "files.notdone.dev", repo: "aarlint/files" },
+            { name: "Emulator", icon: "joystick", desc: "Retro game emulator for N64, SNES, and Genesis with ROM management", url: "emulator.notdone.dev", repo: "aarlint/emulator" },
+            { name: "Expenses", icon: "dollar-sign", desc: "Expense tracker with AI voice input, Claude parsing, and CSV export", url: "expense-tracker.notdone.dev", repo: "arlintdev/expenses" }
         ];
 
         const grid = document.getElementById('apps');
@@ -314,7 +320,7 @@
             grid.innerHTML += `
                 <div class="card">
                     <div class="card-header">
-                        <span class="card-icon">${app.icon}</span>
+                        <span class="card-icon"><i data-lucide="${app.icon}"></i></span>
                         <span class="card-name">${app.name}</span>
                     </div>
                     <div class="card-desc">${app.desc}</div>
@@ -325,6 +331,7 @@
                 </div>
             `;
         });
+        lucide.createIcons();
     </script>
 </body>
 </html>

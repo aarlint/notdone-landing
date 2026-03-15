@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>notdone.dev — Pi Cluster App Directory</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0a0a0a;
+            --surface: #111111;
+            --surface-hover: #1a1a1a;
+            --border: #222222;
+            --border-hover: #33ff33;
+            --green: #33ff33;
+            --green-dim: #1a8c1a;
+            --amber: #ffb833;
+            --text: #cccccc;
+            --text-dim: #666666;
+            --text-bright: #ffffff;
+            --font: 'JetBrains Mono', monospace;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Scanline overlay */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.08) 2px,
+                rgba(0, 0, 0, 0.08) 4px
+            );
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        /* CRT glow effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.4) 100%);
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            padding: 3rem 0 2rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2.5rem;
+        }
+
+        .logo {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: var(--green);
+            letter-spacing: -1px;
+            text-shadow: 0 0 20px rgba(51, 255, 51, 0.3), 0 0 40px rgba(51, 255, 51, 0.1);
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 3px;
+            height: 2.8rem;
+            background: var(--green);
+            margin-left: 4px;
+            vertical-align: middle;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        .subtitle {
+            margin-top: 0.75rem;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .prompt {
+            color: var(--green-dim);
+        }
+
+        /* App grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1rem;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1.25rem;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--green);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .card:hover {
+            border-color: var(--border-hover);
+            background: var(--surface-hover);
+            box-shadow: 0 0 20px rgba(51, 255, 51, 0.05);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-icon {
+            font-size: 1.5rem;
+            line-height: 1;
+            width: 2rem;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .card-name {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-bright);
+        }
+
+        .card-desc {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+            padding-left: 2.75rem;
+            line-height: 1.4;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+            padding-left: 2.75rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.75rem;
+            font-family: var(--font);
+            font-size: 0.7rem;
+            border-radius: 3px;
+            text-decoration: none;
+            transition: all 0.15s ease;
+            font-weight: 400;
+        }
+
+        .btn-launch {
+            background: rgba(51, 255, 51, 0.1);
+            border: 1px solid var(--green-dim);
+            color: var(--green);
+        }
+
+        .btn-launch:hover {
+            background: rgba(51, 255, 51, 0.2);
+            border-color: var(--green);
+            box-shadow: 0 0 10px rgba(51, 255, 51, 0.15);
+        }
+
+        .btn-repo {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+        }
+
+        .btn-repo:hover {
+            border-color: var(--text);
+            color: var(--text);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2.5rem 0 2rem;
+            margin-top: 2.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-text {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            line-height: 1.8;
+        }
+
+        .footer-text .highlight {
+            color: var(--green-dim);
+        }
+
+        /* Stats bar */
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            font-size: 0.75rem;
+        }
+
+        .stat {
+            color: var(--text-dim);
+        }
+
+        .stat-value {
+            color: var(--amber);
+            font-weight: 500;
+        }
+
+        /* Responsive */
+        @media (max-width: 700px) {
+            .logo { font-size: 2rem; }
+            .cursor { height: 2rem; }
+            .grid { grid-template-columns: 1fr; }
+            .stats { gap: 1rem; flex-wrap: wrap; }
+            .container { padding: 1rem; }
+            header { padding: 2rem 0 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">notdone.dev<span class="cursor"></span></div>
+            <div class="subtitle"><span class="prompt">$</span> Pi Cluster App Directory</div>
+        </header>
+
+        <div class="stats">
+            <div class="stat"><span class="stat-value">18</span> apps deployed</div>
+            <div class="stat"><span class="stat-value">2x</span> Raspberry Pi 4</div>
+            <div class="stat"><span class="stat-value">k3s</span> orchestration</div>
+        </div>
+
+        <div class="grid" id="apps"></div>
+
+        <footer>
+            <div class="footer-text">
+                <span class="highlight">&gt;</span> running on bare-metal arm64 &mdash; 2x Raspberry Pi 4 | k3s<br>
+                <span class="highlight">&gt;</span> notdone.dev &copy; 2026
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const apps = [
+            { name: "Learn", icon: "\u{1F4DA}", desc: "Learning platform", url: "learn.notdone.dev", repo: "aarlint/learn" },
+            { name: "Hunt", icon: "\u{1F50D}", desc: "Search & discovery", url: "hunt.notdone.dev", repo: "aarlint/hunt" },
+            { name: "Lines", icon: "\u{270F}\uFE0F", desc: "Drawing & art tool", url: "lines.notdone.dev", repo: "aarlint/lines" },
+            { name: "Shredded", icon: "\u{1F4AA}", desc: "Fitness tracker", url: "shredded.notdone.dev", repo: "aarlint/shredded" },
+            { name: "Huddle", icon: "\u{1F91D}", desc: "Collaboration hub", url: "huddle.notdone.dev", repo: "aarlint/huddle" },
+            { name: "Hikes", icon: "\u{1F97E}", desc: "Trail & hiking guide", url: "hikes.notdone.dev", repo: "aarlint/hikemoms" },
+            { name: "Plant Montana", icon: "\u{1F33F}", desc: "Montana plant guide", url: "plantmontana.notdone.dev", repo: "aarlint/plantmontana" },
+            { name: "The Plan", icon: "\u{1F4CB}", desc: "Project planner", url: "theplan.notdone.dev", repo: "aarlint/theplan" },
+            { name: "World Domination", icon: "\u{1F30D}", desc: "World map game", url: "worlddomination.notdone.dev", repo: "aarlint/worlddomination" },
+            { name: "Fruit Trees", icon: "\u{1F34E}", desc: "Fruit tree tracker", url: "fruittrees.notdone.dev", repo: "aarlint/fruittrees" },
+            { name: "BT Debug", icon: "\u{1F4E1}", desc: "Bluetooth debug tool", url: "btdebug.notdone.dev", repo: "aarlint/bluetooth" },
+            { name: "Tools", icon: "\u{1F527}", desc: "Utility dashboard", url: "tools.notdone.dev", repo: "aarlint/tools" },
+            { name: "Files", icon: "\u{1F4C1}", desc: "File manager", url: "files.notdone.dev", repo: "aarlint/files" },
+            { name: "Emulator", icon: "\u{1F3AE}", desc: "Retro game emulator", url: "emulator.notdone.dev", repo: "aarlint/emulator" },
+            { name: "Expenses", icon: "\u{1F4B0}", desc: "Expense tracker", url: "expense-tracker.notdone.dev", repo: "arlintdev/expenses" },
+            { name: "DEDZED", icon: "\u{1F4D6}", desc: "Documentation tool", url: "dedzed.notdone.dev", repo: "aarlint/dedzed" },
+            { name: "RMF", icon: "\u{1F6E1}\uFE0F", desc: "Risk Management Framework", url: "rmf.notdone.dev", repo: "aarlint/rmf" },
+            { name: "Home Assistant", icon: "\u{1F3E0}", desc: "Home automation", url: "home.notdone.dev", repo: null }
+        ];
+
+        const grid = document.getElementById('apps');
+        apps.forEach(app => {
+            const repoBtn = app.repo
+                ? `<a href="https://github.com/${app.repo}" target="_blank" rel="noopener" class="btn btn-repo">repo</a>`
+                : `<span class="btn btn-repo" style="opacity:0.3;cursor:default">external</span>`;
+            grid.innerHTML += `
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-icon">${app.icon}</span>
+                        <span class="card-name">${app.name}</span>
+                    </div>
+                    <div class="card-desc">${app.desc}</div>
+                    <div class="card-actions">
+                        <a href="https://${app.url}" target="_blank" rel="noopener" class="btn btn-launch">launch &rarr;</a>
+                        ${repoBtn}
+                    </div>
+                </div>
+            `;
+        });
+    </script>
+</body>
+</html>

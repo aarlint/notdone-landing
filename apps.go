@@ -30,7 +30,7 @@ var Apps = []AppDef{
 	{Key: "huddle", Name: "Huddle", Icon: "video", Desc: "Real-time video conferencing with WebRTC, organizations, and multi-room", URL: "huddle.notdone.dev", Repo: "aarlint/huddle", Category: CatProductivity, Namespace: "default", Deploy: "huddle", SvcURL: "http://huddle.default.svc.cluster.local"},
 	{Key: "theplan", Name: "The Plan", Icon: "scroll", Desc: "Political reform platform proposing eight policy pillars for governance", URL: "theplan.notdone.dev", Repo: "aarlint/theplan", Category: CatPolitical, Namespace: "default", Deploy: "theplan", SvcURL: "http://theplan.default.svc.cluster.local"},
 	{Key: "tools", Name: "Tools", Icon: "wrench", Desc: "Developer utility suite for common tasks and code transformations", URL: "tools.notdone.dev", Repo: "aarlint/tools", Category: CatProductivity, Namespace: "default", Deploy: "tools", SvcURL: "http://tools.default.svc.cluster.local"},
-	{Key: "expenses", Name: "Expenses", Icon: "dollar-sign", Desc: "Expense tracker with AI voice input, Claude parsing, and CSV export", URL: "expense-tracker.notdone.dev", Repo: "arlintdev/expenses", Category: CatProductivity, Namespace: "default", Deploy: "expenses", SvcURL: "http://expenses.default.svc.cluster.local"},
+	{Key: "expenses", Name: "Expenses", Icon: "dollar-sign", Desc: "Expense tracker with AI voice input, Claude parsing, and CSV export", URL: "expense-tracker.notdone.dev", Repo: "arlintdev/expenses", Category: CatProductivity, Namespace: "expense-tracker", Deploy: "expense-tracker", SvcURL: "http://expense-tracker.expense-tracker.svc.cluster.local"},
 
 	// Fitness & Outdoors
 	{Key: "shredded", Name: "Shredded", Icon: "dumbbell", Desc: "Fitness community for logging lifts, tracking PRs, and achievements", URL: "shredded.notdone.dev", Repo: "aarlint/shredded", Category: CatFitness, Namespace: "default", Deploy: "shredded", SvcURL: "http://shredded.default.svc.cluster.local"},
@@ -44,7 +44,7 @@ var Apps = []AppDef{
 
 	// Development
 	{Key: "btdebug", Name: "BT Debug", Icon: "radio", Desc: "Bluetooth diagnostics tool for device scanning and connection monitoring", URL: "btdebug.notdone.dev", Repo: "aarlint/bluetooth", Category: CatDevelopment, Namespace: "default", Deploy: "bluetooth", SvcURL: "http://bluetooth.default.svc.cluster.local"},
-	{Key: "code", Name: "Code", Icon: "code", Desc: "Browser-based code editor and development environment", URL: "code.notdone.dev", Repo: "", Category: CatDevelopment, Namespace: "default", Deploy: "code", SvcURL: "http://code.default.svc.cluster.local"},
+	{Key: "code", Name: "Code", Icon: "code", Desc: "Browser-based code editor and development environment", URL: "code.notdone.dev", Repo: "", Category: CatDevelopment, Namespace: "default", Deploy: "code-hub", SvcURL: "http://code-hub.default.svc.cluster.local"},
 
 	// Fun
 	{Key: "worlddomination", Name: "World Domination", Icon: "crown", Desc: "Satirical political campaign for a fictional world leader", URL: "worlddomination.notdone.dev", Repo: "aarlint/worlddomination", Category: CatPolitical, Namespace: "default", Deploy: "worlddomination", SvcURL: "http://worlddomination.default.svc.cluster.local"},

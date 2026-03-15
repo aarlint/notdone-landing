@@ -20,6 +20,7 @@
             --green: #33ff33;
             --green-dim: #1a8c1a;
             --amber: #ffb833;
+            --red: #ff4444;
             --text: #cccccc;
             --text-dim: #666666;
             --text-bright: #ffffff;
@@ -109,6 +110,53 @@
             color: var(--green-dim);
         }
 
+        /* Stats bar */
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            font-size: 0.75rem;
+        }
+
+        .stat {
+            color: var(--text-dim);
+        }
+
+        .stat-value {
+            color: var(--amber);
+            font-weight: 500;
+        }
+
+        /* Category headers */
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 2rem 0 1rem;
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .category-header:first-child {
+            margin-top: 0;
+        }
+
+        .category-header::before {
+            content: '//';
+            color: var(--green-dim);
+            font-weight: 700;
+        }
+
+        .category-header::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
         /* App grid */
         .grid {
             display: grid;
@@ -171,6 +219,42 @@
             font-size: 1rem;
             font-weight: 500;
             color: var(--text-bright);
+            flex: 1;
+        }
+
+        /* Status blip */
+        .status-blip {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            background: #444;
+            transition: background 0.3s ease;
+        }
+
+        .status-blip[data-status="healthy"] {
+            background: var(--green);
+            box-shadow: 0 0 6px rgba(51, 255, 51, 0.6);
+            animation: pulse-green 2s ease-in-out infinite;
+        }
+
+        .status-blip[data-status="unhealthy"] {
+            background: var(--red);
+            box-shadow: 0 0 6px rgba(255, 68, 68, 0.6);
+        }
+
+        .status-blip[data-status="degraded"] {
+            background: var(--amber);
+            box-shadow: 0 0 6px rgba(255, 184, 51, 0.6);
+        }
+
+        .status-blip[data-status="unknown"] {
+            background: #444;
+        }
+
+        @keyframes pulse-green {
+            0%, 100% { box-shadow: 0 0 6px rgba(51, 255, 51, 0.6); }
+            50% { box-shadow: 0 0 12px rgba(51, 255, 51, 0.9); }
         }
 
         .card-desc {
@@ -241,24 +325,6 @@
             color: var(--green-dim);
         }
 
-        /* Stats bar */
-        .stats {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-bottom: 2rem;
-            font-size: 0.75rem;
-        }
-
-        .stat {
-            color: var(--text-dim);
-        }
-
-        .stat-value {
-            color: var(--amber);
-            font-weight: 500;
-        }
-
         /* Responsive */
         @media (max-width: 700px) {
             .logo { font-size: 2rem; }
@@ -278,60 +344,109 @@
         </header>
 
         <div class="stats">
-            <div class="stat"><span class="stat-value">15</span> apps deployed</div>
+            <div class="stat" id="health-stat"><span class="stat-value">15</span> apps deployed</div>
             <div class="stat"><span class="stat-value">2x</span> Raspberry Pi 4</div>
             <div class="stat"><span class="stat-value">k3s</span> orchestration</div>
         </div>
 
-        <div class="grid" id="apps"></div>
+        <div id="apps"></div>
 
         <footer>
             <div class="footer-text">
                 <span class="highlight">&gt;</span> running on bare-metal arm64 &mdash; 2x Raspberry Pi 4 | k3s<br>
-                <span class="highlight">&gt;</span> notdone.dev &copy; 2026
+                <span class="highlight">&gt;</span> ~/made/by/<a href="https://arlint.dev" target="_blank" rel="noopener" style="color:var(--green-dim);text-decoration:none">arlintdev</a> &copy; 2026
             </div>
         </footer>
     </div>
 
     <script>
         const apps = [
-            { name: "Learn", icon: "book-open", desc: "Educational games and lessons for kids with profiles and progress tracking", url: "learn.notdone.dev", repo: "aarlint/learn" },
-            { name: "Hunt", icon: "map", desc: "Montana hunting app with access maps, regulations, and trip planning", url: "hunt.notdone.dev", repo: "aarlint/hunt" },
-            { name: "Lines", icon: "grid-3x3", desc: "Montana property lines viewer with parcel search and ownership lookup", url: "lines.notdone.dev", repo: "aarlint/lines" },
-            { name: "Shredded", icon: "dumbbell", desc: "Fitness community for logging lifts, tracking PRs, and achievements", url: "shredded.notdone.dev", repo: "aarlint/shredded" },
-            { name: "Huddle", icon: "video", desc: "Real-time video conferencing with WebRTC, organizations, and multi-room", url: "huddle.notdone.dev", repo: "aarlint/huddle" },
-            { name: "Hikes", icon: "mountain", desc: "Community hiking tracker for logging routes, distances, and elevation", url: "hikes.notdone.dev", repo: "aarlint/hikemoms" },
-            { name: "Plant Montana", icon: "sprout", desc: "Western Montana gardening guide with frost dates and zone recommendations", url: "plantmontana.notdone.dev", repo: "aarlint/plantmontana" },
-            { name: "The Plan", icon: "scroll", desc: "Political reform platform proposing eight policy pillars for governance", url: "theplan.notdone.dev", repo: "aarlint/theplan" },
-            { name: "World Domination", icon: "crown", desc: "Satirical political campaign for a fictional world leader", url: "worlddomination.notdone.dev", repo: "aarlint/worlddomination" },
-            { name: "Fruit Trees", icon: "apple", desc: "Western fruit tree guide with pollination partners and cold hardiness data", url: "fruittrees.notdone.dev", repo: "aarlint/fruittrees" },
-            { name: "BT Debug", icon: "radio", desc: "Bluetooth diagnostics tool for device scanning and connection monitoring", url: "btdebug.notdone.dev", repo: "aarlint/bluetooth" },
-            { name: "Tools", icon: "wrench", desc: "Developer utility suite for common tasks and code transformations", url: "tools.notdone.dev", repo: "aarlint/tools" },
-            { name: "Code", icon: "code", desc: "Browser-based code editor and development environment", url: "code.notdone.dev", repo: null },
-            { name: "Emulator", icon: "joystick", desc: "Retro game emulator for N64, SNES, and Genesis with ROM management", url: "emulator.notdone.dev", repo: "aarlint/emulator" },
-            { name: "Expenses", icon: "dollar-sign", desc: "Expense tracker with AI voice input, Claude parsing, and CSV export", url: "expense-tracker.notdone.dev", repo: "arlintdev/expenses" }
+            { key: "learn", name: "Learn", icon: "book-open", desc: "Educational games and lessons for kids with profiles and progress tracking", url: "learn.notdone.dev", repo: "aarlint/learn", category: "Productivity" },
+            { key: "hunt", name: "Hunt", icon: "map", desc: "Montana hunting app with access maps, regulations, and trip planning", url: "hunt.notdone.dev", repo: "aarlint/hunt", category: "Fitness & Outdoors" },
+            { key: "huddle", name: "Huddle", icon: "video", desc: "Real-time video conferencing with WebRTC, organizations, and multi-room", url: "huddle.notdone.dev", repo: "aarlint/huddle", category: "Productivity" },
+            { key: "theplan", name: "The Plan", icon: "scroll", desc: "Political reform platform proposing eight policy pillars for governance", url: "theplan.notdone.dev", repo: "aarlint/theplan", category: "Political" },
+            { key: "tools", name: "Tools", icon: "wrench", desc: "Developer utility suite for common tasks and code transformations", url: "tools.notdone.dev", repo: "aarlint/tools", category: "Productivity" },
+            { key: "expenses", name: "Expenses", icon: "dollar-sign", desc: "Expense tracker with AI voice input, Claude parsing, and CSV export", url: "expense-tracker.notdone.dev", repo: "arlintdev/expenses", category: "Productivity" },
+            { key: "shredded", name: "Shredded", icon: "dumbbell", desc: "Fitness community for logging lifts, tracking PRs, and achievements", url: "shredded.notdone.dev", repo: "aarlint/shredded", category: "Fitness & Outdoors" },
+            { key: "hikes", name: "Hikes", icon: "mountain", desc: "Community hiking tracker for logging routes, distances, and elevation", url: "hikes.notdone.dev", repo: "aarlint/hikemoms", category: "Fitness & Outdoors" },
+            { key: "plantmontana", name: "Plant Montana", icon: "sprout", desc: "Western Montana gardening guide with frost dates and zone recommendations", url: "plantmontana.notdone.dev", repo: "aarlint/plantmontana", category: "Fitness & Outdoors" },
+            { key: "fruittrees", name: "Fruit Trees", icon: "apple", desc: "Western fruit tree guide with pollination partners and cold hardiness data", url: "fruittrees.notdone.dev", repo: "aarlint/fruittrees", category: "Fitness & Outdoors" },
+            { key: "lines", name: "Lines", icon: "grid-3x3", desc: "Montana property lines viewer with parcel search and ownership lookup", url: "lines.notdone.dev", repo: "aarlint/lines", category: "Productivity" },
+            { key: "emulator", name: "Emulator", icon: "joystick", desc: "Retro game emulator for N64, SNES, and Genesis with ROM management", url: "emulator.notdone.dev", repo: "aarlint/emulator", category: "Fun" },
+            { key: "btdebug", name: "BT Debug", icon: "radio", desc: "Bluetooth diagnostics tool for device scanning and connection monitoring", url: "btdebug.notdone.dev", repo: "aarlint/bluetooth", category: "Development" },
+            { key: "code", name: "Code", icon: "code", desc: "Browser-based code editor and development environment", url: "code.notdone.dev", repo: null, category: "Development" },
+            { key: "worlddomination", name: "World Domination", icon: "crown", desc: "Satirical political campaign for a fictional world leader", url: "worlddomination.notdone.dev", repo: "aarlint/worlddomination", category: "Political" }
         ];
 
-        const grid = document.getElementById('apps');
+        const categoryOrder = ["Productivity", "Fitness & Outdoors", "Development", "Political", "Fun"];
+        const container = document.getElementById('apps');
+
+        // Group apps by category
+        const grouped = {};
         apps.forEach(app => {
-            const repoBtn = app.repo
-                ? `<a href="https://github.com/${app.repo}" target="_blank" rel="noopener" class="btn btn-repo">repo</a>`
-                : `<span class="btn btn-repo" style="opacity:0.3;cursor:default">external</span>`;
-            grid.innerHTML += `
-                <div class="card">
-                    <div class="card-header">
-                        <span class="card-icon"><i data-lucide="${app.icon}"></i></span>
-                        <span class="card-name">${app.name}</span>
+            if (!grouped[app.category]) grouped[app.category] = [];
+            grouped[app.category].push(app);
+        });
+
+        // Render categories and cards
+        categoryOrder.forEach(cat => {
+            if (!grouped[cat]) return;
+            container.innerHTML += `<div class="category-header">${cat}</div>`;
+            const grid = document.createElement('div');
+            grid.className = 'grid';
+            grouped[cat].forEach(app => {
+                const repoBtn = app.repo
+                    ? `<a href="https://github.com/${app.repo}" target="_blank" rel="noopener" class="btn btn-repo">repo</a>`
+                    : `<span class="btn btn-repo" style="opacity:0.3;cursor:default">external</span>`;
+                grid.innerHTML += `
+                    <div class="card" data-app="${app.key}">
+                        <div class="card-header">
+                            <span class="card-icon"><i data-lucide="${app.icon}"></i></span>
+                            <span class="card-name">${app.name}</span>
+                            <span class="status-blip" data-status="unknown" title="Checking..."></span>
+                        </div>
+                        <div class="card-desc">${app.desc}</div>
+                        <div class="card-actions">
+                            <a href="https://${app.url}" target="_blank" rel="noopener" class="btn btn-launch">launch &rarr;</a>
+                            ${repoBtn}
+                        </div>
                     </div>
-                    <div class="card-desc">${app.desc}</div>
-                    <div class="card-actions">
-                        <a href="https://${app.url}" target="_blank" rel="noopener" class="btn btn-launch">launch &rarr;</a>
-                        ${repoBtn}
-                    </div>
-                </div>
-            `;
+                `;
+            });
+            container.appendChild(grid);
         });
         lucide.createIcons();
+
+        // Status polling
+        function updateStatus(data) {
+            if (!data || !data.apps) return;
+            let healthy = 0, total = apps.length;
+            apps.forEach(app => {
+                const info = data.apps[app.key];
+                const card = document.querySelector(`[data-app="${app.key}"]`);
+                if (!card) return;
+                const blip = card.querySelector('.status-blip');
+                if (!blip) return;
+                const status = info ? info.status : 'unknown';
+                blip.setAttribute('data-status', status);
+                blip.title = info
+                    ? `${status} — ${info.ready}/${info.desired} pods${info.httpOk ? ', HTTP ok' : ''}`
+                    : 'No data';
+                if (status === 'healthy') healthy++;
+            });
+            const el = document.getElementById('health-stat');
+            el.innerHTML = `<span class="stat-value">${healthy}/${total}</span> healthy`;
+        }
+
+        function pollStatus() {
+            fetch('/api/status')
+                .then(r => r.json())
+                .then(updateStatus)
+                .catch(() => {});
+        }
+
+        pollStatus();
+        setInterval(pollStatus, 30000);
     </script>
 </body>
 </html>

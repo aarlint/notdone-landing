@@ -1,4 +1,12 @@
-FROM nginx:alpine
-COPY index.html /usr/share/nginx/html/index.html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-EXPOSE 80
+FROM golang:1.23-alpine AS build
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN go mod download
+COPY *.go ./
+COPY index.html ./
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /landing .
+
+FROM scratch
+COPY --from=build /landing /landing
+EXPOSE 8080
+ENTRYPOINT ["/landing"]

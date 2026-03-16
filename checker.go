@@ -29,17 +29,19 @@ type StatusResponse struct {
 
 // StatusCache holds cached health data with concurrent-safe access.
 type StatusCache struct {
-	mu        sync.RWMutex
-	data      *StatusResponse
-	clientset kubernetes.Interface
+	mu         sync.RWMutex
+	data       *StatusResponse
+	clientset  kubernetes.Interface
 	httpClient *http.Client
+	registry   *AppRegistry
 }
 
-// NewStatusCache creates a new cache with the given k8s client.
-func NewStatusCache(cs kubernetes.Interface) *StatusCache {
+// NewStatusCache creates a new cache with the given k8s client and app registry.
+func NewStatusCache(cs kubernetes.Interface, registry *AppRegistry) *StatusCache {
 	return &StatusCache{
-		clientset: cs,
+		clientset:  cs,
 		httpClient: &http.Client{Timeout: 3 * time.Second},
+		registry:   registry,
 		data: &StatusResponse{
 			UpdatedAt: time.Now().Unix(),
 			Apps:      make(map[string]*AppStatus),
@@ -54,7 +56,7 @@ func (sc *StatusCache) JSON() ([]byte, error) {
 	return json.Marshal(sc.data)
 }
 
-// RunPoller starts the background health check loop. It runs immediately then every interval.
+// RunPoller starts the background health check loop.
 func (sc *StatusCache) RunPoller(ctx context.Context, interval time.Duration) {
 	sc.checkAll(ctx)
 	ticker := time.NewTicker(interval)
@@ -70,14 +72,16 @@ func (sc *StatusCache) RunPoller(ctx context.Context, interval time.Duration) {
 }
 
 func (sc *StatusCache) checkAll(parentCtx context.Context) {
+	apps := sc.registry.Apps()
+
 	ctx, cancel := context.WithTimeout(parentCtx, 5*time.Second)
 	defer cancel()
 
-	results := make(map[string]*AppStatus, len(Apps))
+	results := make(map[string]*AppStatus, len(apps))
 	var mu sync.Mutex
 	var wg sync.WaitGroup
 
-	for _, app := range Apps {
+	for _, app := range apps {
 		wg.Add(1)
 		go func(a AppDef) {
 			defer wg.Done()
@@ -100,7 +104,6 @@ func (sc *StatusCache) checkAll(parentCtx context.Context) {
 func (sc *StatusCache) checkOne(ctx context.Context, app AppDef) *AppStatus {
 	s := &AppStatus{Status: "unknown"}
 
-	// k8s deployment check
 	if sc.clientset != nil {
 		deploy, err := sc.clientset.AppsV1().Deployments(app.Namespace).Get(ctx, app.Deploy, metav1.GetOptions{})
 		if err != nil {
@@ -120,7 +123,6 @@ func (sc *StatusCache) checkOne(ctx context.Context, app AppDef) *AppStatus {
 		}
 	}
 
-	// HTTP probe
 	req, err := http.NewRequestWithContext(ctx, http.MethodHead, app.SvcURL, nil)
 	if err != nil {
 		s.Status = deriveStatus(s.Ready, s.Desired, false)

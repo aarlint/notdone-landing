@@ -19,7 +19,6 @@ import (
 var staticFS embed.FS
 
 func main() {
-	// Build k8s client — in-cluster first, fallback to kubeconfig for local dev
 	var cs kubernetes.Interface
 	config, err := rest.InClusterConfig()
 	if err != nil {
@@ -40,10 +39,16 @@ func main() {
 		}
 	}
 
-	cache := NewStatusCache(cs)
+	registry := NewAppRegistry(cs)
+	cache := NewStatusCache(cs, registry)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+
+	go registry.RunRefresh(ctx, 60*time.Second)
+
+	// Wait briefly for initial discovery before starting status poller
+	time.Sleep(100 * time.Millisecond)
 
 	go cache.RunPoller(ctx, 30*time.Second)
 
@@ -51,7 +56,6 @@ func main() {
 
 	indexHTML, _ := staticFS.ReadFile("index.html")
 
-	// Serve embedded index.html, redirect notdone.dev → apps.notdone.dev
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.Host == "notdone.dev" {
 			http.Redirect(w, r, "https://apps.notdone.dev"+r.URL.RequestURI(), http.StatusMovedPermanently)
@@ -66,6 +70,7 @@ func main() {
 		w.Write(indexHTML)
 	})
 
+	mux.HandleFunc("/api/apps", registry.ServeApps)
 	mux.HandleFunc("/api/status", cache.ServeStatus)
 
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {

@@ -344,7 +344,7 @@
         </header>
 
         <div class="stats">
-            <div class="stat" id="health-stat"><span class="stat-value">15</span> apps deployed</div>
+            <div class="stat" id="health-stat"><span class="stat-value">...</span> loading</div>
             <div class="stat"><span class="stat-value">2x</span> Raspberry Pi 4</div>
             <div class="stat"><span class="stat-value">k3s</span> orchestration</div>
         </div>
@@ -360,64 +360,50 @@
     </div>
 
     <script>
-        const apps = [
-            { key: "learn", name: "Learn", icon: "book-open", desc: "Educational games and lessons for kids with profiles and progress tracking", url: "learn.notdone.dev", repo: "aarlint/learn", category: "Productivity" },
-            { key: "hunt", name: "Hunt", icon: "map", desc: "Montana hunting app with access maps, regulations, and trip planning", url: "hunt.notdone.dev", repo: "aarlint/hunt", category: "Fitness & Outdoors" },
-            { key: "huddle", name: "Huddle", icon: "video", desc: "Real-time video conferencing with WebRTC, organizations, and multi-room", url: "huddle.notdone.dev", repo: "aarlint/huddle", category: "Productivity" },
-            { key: "theplan", name: "The Plan", icon: "scroll", desc: "Political reform platform proposing eight policy pillars for governance", url: "theplan.notdone.dev", repo: "aarlint/theplan", category: "Political" },
-            { key: "tools", name: "Tools", icon: "wrench", desc: "Developer utility suite for common tasks and code transformations", url: "tools.notdone.dev", repo: "aarlint/tools", category: "Productivity" },
-            { key: "expenses", name: "Expenses", icon: "dollar-sign", desc: "Expense tracker with AI voice input, Claude parsing, and CSV export", url: "expense-tracker.notdone.dev", repo: "arlintdev/expenses", category: "Productivity" },
-            { key: "shredded", name: "Shredded", icon: "dumbbell", desc: "Fitness community for logging lifts, tracking PRs, and achievements", url: "shredded.notdone.dev", repo: "aarlint/shredded", category: "Fitness & Outdoors" },
-            { key: "hikes", name: "Hikes", icon: "mountain", desc: "Community hiking tracker for logging routes, distances, and elevation", url: "hikes.notdone.dev", repo: "aarlint/hikemoms", category: "Fitness & Outdoors" },
-            { key: "plantmontana", name: "Plant Montana", icon: "sprout", desc: "Western Montana gardening guide with frost dates and zone recommendations", url: "plantmontana.notdone.dev", repo: "aarlint/plantmontana", category: "Fitness & Outdoors" },
-            { key: "fruittrees", name: "Fruit Trees", icon: "apple", desc: "Western fruit tree guide with pollination partners and cold hardiness data", url: "fruittrees.notdone.dev", repo: "aarlint/fruittrees", category: "Fitness & Outdoors" },
-            { key: "lines", name: "Lines", icon: "grid-3x3", desc: "Montana property lines viewer with parcel search and ownership lookup", url: "lines.notdone.dev", repo: "aarlint/lines", category: "Productivity" },
-            { key: "emulator", name: "Emulator", icon: "joystick", desc: "Retro game emulator for N64, SNES, and Genesis with ROM management", url: "emulator.notdone.dev", repo: "aarlint/emulator", category: "Fun" },
-            { key: "btdebug", name: "BT Debug", icon: "radio", desc: "Bluetooth diagnostics tool for device scanning and connection monitoring", url: "btdebug.notdone.dev", repo: "aarlint/bluetooth", category: "Development" },
-            { key: "code", name: "Code", icon: "code", desc: "Browser-based code editor and development environment", url: "code.notdone.dev", repo: null, category: "Development" },
-            { key: "worlddomination", name: "World Domination", icon: "crown", desc: "Satirical political campaign for a fictional world leader", url: "worlddomination.notdone.dev", repo: "aarlint/worlddomination", category: "Political" }
-        ];
-
-        const categoryOrder = ["Productivity", "Fitness & Outdoors", "Development", "Political", "Fun"];
+        let apps = [];
+        let categoryOrder = [];
         const container = document.getElementById('apps');
 
-        // Group apps by category
-        const grouped = {};
-        apps.forEach(app => {
-            if (!grouped[app.category]) grouped[app.category] = [];
-            grouped[app.category].push(app);
-        });
-
-        // Render categories and cards
-        categoryOrder.forEach(cat => {
-            if (!grouped[cat]) return;
-            container.innerHTML += `<div class="category-header">${cat}</div>`;
-            const grid = document.createElement('div');
-            grid.className = 'grid';
-            grouped[cat].forEach(app => {
-                const repoBtn = app.repo
-                    ? `<a href="https://github.com/${app.repo}" target="_blank" rel="noopener" class="btn btn-repo">repo</a>`
-                    : `<span class="btn btn-repo" style="opacity:0.3;cursor:default">external</span>`;
-                grid.innerHTML += `
-                    <div class="card" data-app="${app.key}">
-                        <div class="card-header">
-                            <span class="card-icon"><i data-lucide="${app.icon}"></i></span>
-                            <span class="card-name">${app.name}</span>
-                            <span class="status-blip" data-status="unknown" title="Checking..."></span>
-                        </div>
-                        <div class="card-desc">${app.desc}</div>
-                        <div class="card-actions">
-                            <a href="https://${app.url}" target="_blank" rel="noopener" class="btn btn-launch">launch &rarr;</a>
-                            ${repoBtn}
-                        </div>
-                    </div>
-                `;
+        function renderApps() {
+            container.innerHTML = '';
+            const grouped = {};
+            apps.forEach(app => {
+                if (!grouped[app.category]) grouped[app.category] = [];
+                grouped[app.category].push(app);
             });
-            container.appendChild(grid);
-        });
-        lucide.createIcons();
 
-        // Status polling
+            categoryOrder.forEach(cat => {
+                if (!grouped[cat]) return;
+                container.innerHTML += `<div class="category-header">${cat}</div>`;
+                const grid = document.createElement('div');
+                grid.className = 'grid';
+                grouped[cat].forEach(app => {
+                    const repoBtn = app.repo
+                        ? `<a href="https://github.com/${app.repo}" target="_blank" rel="noopener" class="btn btn-repo">repo</a>`
+                        : `<span class="btn btn-repo" style="opacity:0.3;cursor:default">external</span>`;
+                    grid.innerHTML += `
+                        <div class="card" data-app="${app.key}">
+                            <div class="card-header">
+                                <span class="card-icon"><i data-lucide="${app.icon}"></i></span>
+                                <span class="card-name">${app.name}</span>
+                                <span class="status-blip" data-status="unknown" title="Checking..."></span>
+                            </div>
+                            <div class="card-desc">${app.desc}</div>
+                            <div class="card-actions">
+                                <a href="https://${app.url}" target="_blank" rel="noopener" class="btn btn-launch">launch &rarr;</a>
+                                ${repoBtn}
+                            </div>
+                        </div>
+                    `;
+                });
+                container.appendChild(grid);
+            });
+            lucide.createIcons();
+
+            const el = document.getElementById('health-stat');
+            el.innerHTML = `<span class="stat-value">${apps.length}</span> apps deployed`;
+        }
+
         function updateStatus(data) {
             if (!data || !data.apps) return;
             let healthy = 0, total = apps.length;
@@ -445,8 +431,19 @@
                 .catch(() => {});
         }
 
-        pollStatus();
-        setInterval(pollStatus, 30000);
+        // Fetch app list from backend, then render and start polling
+        fetch('/api/apps')
+            .then(r => r.json())
+            .then(data => {
+                apps = data.apps || [];
+                categoryOrder = data.categories || [];
+                renderApps();
+                pollStatus();
+                setInterval(pollStatus, 30000);
+            })
+            .catch(() => {
+                container.innerHTML = '<div style="color:var(--red);text-align:center;padding:2rem">Failed to load apps</div>';
+            });
     </script>
 </body>
 </html>

@@ -28,8 +28,19 @@ type AppDef struct {
 	SvcURL    string `json:"-"`
 }
 
-// CategoryOrder defines display ordering for the frontend.
-var CategoryOrder = []string{"Productivity", "Fitness & Outdoors", "Development", "Political", "Fun"}
+// categoryOrder returns a deduplicated list of categories from the given apps,
+// preserving the order of first appearance.
+func categoryOrder(apps []AppDef) []string {
+	seen := map[string]bool{}
+	var cats []string
+	for _, a := range apps {
+		if a.Category != "" && !seen[a.Category] {
+			seen[a.Category] = true
+			cats = append(cats, a.Category)
+		}
+	}
+	return cats
+}
 
 const (
 	labelSelector = "notdone.dev/app=true"
@@ -137,9 +148,10 @@ func (r *AppRegistry) refresh(ctx context.Context) {
 
 // ServeApps is the HTTP handler for /api/apps.
 func (r *AppRegistry) ServeApps(w http.ResponseWriter, _ *http.Request) {
+	apps := r.Apps()
 	resp := AppsResponse{
-		Apps:       r.Apps(),
-		Categories: CategoryOrder,
+		Apps:       apps,
+		Categories: categoryOrder(apps),
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "public, max-age=30")

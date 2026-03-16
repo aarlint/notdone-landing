@@ -260,9 +260,44 @@
         .card-desc {
             font-size: 0.75rem;
             color: var(--text-dim);
-            margin-bottom: 1rem;
+            margin-bottom: 0.6rem;
             padding-left: 3.25rem;
             line-height: 1.4;
+        }
+
+        .card-metrics {
+            display: flex;
+            gap: 0.4rem;
+            padding-left: 3.25rem;
+            margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .card-metric {
+            font-size: 0.6rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 2px;
+            background: rgba(51, 255, 51, 0.06);
+            border: 1px solid rgba(51, 255, 51, 0.15);
+            color: var(--green-dim);
+            white-space: nowrap;
+        }
+
+        .card-metric .metric-label {
+            color: var(--text-dim);
+            margin-right: 0.2rem;
+        }
+
+        .card-metric.warn {
+            background: rgba(255, 184, 51, 0.08);
+            border-color: rgba(255, 184, 51, 0.25);
+            color: var(--amber);
+        }
+
+        .card-metric.danger {
+            background: rgba(255, 68, 68, 0.08);
+            border-color: rgba(255, 68, 68, 0.25);
+            color: var(--red);
         }
 
         .card-actions {
@@ -307,6 +342,89 @@
             color: var(--text);
         }
 
+        /* Cluster overview */
+        .cluster-section {
+            margin-top: 2.5rem;
+        }
+
+        .cluster-nodes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .node-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1rem 1.25rem;
+            font-size: 0.7rem;
+            line-height: 1.8;
+        }
+
+        .node-header {
+            color: var(--green);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .bar-row {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+
+        .bar-label {
+            color: var(--text-dim);
+            width: 2.5rem;
+            flex-shrink: 0;
+        }
+
+        .bar-graph {
+            flex: 1;
+            letter-spacing: 0;
+        }
+
+        .bar-pct {
+            width: 3.5rem;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .bar-detail {
+            color: var(--text-dim);
+            padding-left: 3rem;
+            font-size: 0.65rem;
+        }
+
+        .color-green { color: var(--green); }
+        .color-amber { color: var(--amber); }
+        .color-red { color: var(--red); }
+
+        .node-pods {
+            color: var(--text-dim);
+            margin-top: 0.25rem;
+        }
+
+        .node-pods span { color: var(--amber); }
+
+        .cluster-totals {
+            margin-top: 1rem;
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            padding: 0.75rem 1rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+        }
+
+        .cluster-totals .highlight { color: var(--green); }
+        .cluster-totals .val { color: var(--amber); }
+
         /* Footer */
         footer {
             text-align: center;
@@ -333,6 +451,8 @@
             .stats { gap: 1rem; flex-wrap: wrap; }
             .container { padding: 1rem; }
             header { padding: 2rem 0 1.5rem; }
+            .cluster-nodes { grid-template-columns: 1fr; }
+            .node-panel { font-size: 0.6rem; overflow-x: auto; }
         }
     </style>
 </head>
@@ -347,9 +467,17 @@
             <div class="stat" id="health-stat"><span class="stat-value">...</span> loading</div>
             <div class="stat"><span class="stat-value">2x</span> Raspberry Pi 4</div>
             <div class="stat"><span class="stat-value">k3s</span> orchestration</div>
+            <div class="stat" id="cpu-stat"></div>
+            <div class="stat" id="mem-stat"></div>
         </div>
 
         <div id="apps"></div>
+
+        <div class="cluster-section" id="cluster-section" style="display:none">
+            <div class="category-header">cluster nodes</div>
+            <div class="cluster-nodes" id="cluster-nodes"></div>
+            <div class="cluster-totals" id="cluster-totals"></div>
+        </div>
 
         <footer>
             <div class="footer-text">
@@ -389,6 +517,7 @@
                                 <span class="status-blip" data-status="unknown" title="Checking..."></span>
                             </div>
                             <div class="card-desc">${app.desc}</div>
+                            <div class="card-metrics" data-metrics-for="${app.key}"></div>
                             <div class="card-actions">
                                 <a href="https://${app.url}" target="_blank" rel="noopener" class="btn btn-launch">launch &rarr;</a>
                                 ${repoBtn}
@@ -431,6 +560,97 @@
                 .catch(() => {});
         }
 
+        // --- Metrics rendering ---
+
+        function updateCardMetrics(metricsData) {
+            if (!metricsData || !metricsData.pods) return;
+            apps.forEach(app => {
+                const el = document.querySelector(`[data-metrics-for="${app.key}"]`);
+                if (!el) return;
+                const pod = metricsData.pods[app.key];
+                if (!pod) {
+                    el.innerHTML = '';
+                    return;
+                }
+                const restartClass = pod.restarts > 3 ? 'danger' : pod.restarts > 0 ? 'warn' : '';
+                el.innerHTML =
+                    `<span class="card-metric"><span class="metric-label">cpu</span>${pod.cpuUsedM}m</span>` +
+                    `<span class="card-metric"><span class="metric-label">mem</span>${pod.memUsedMi}Mi</span>` +
+                    `<span class="card-metric"><span class="metric-label">node</span>${pod.node}</span>` +
+                    `<span class="card-metric ${restartClass}"><span class="metric-label">restarts</span>${pod.restarts}</span>`;
+            });
+        }
+
+        function makeBar(pct, width) {
+            const filled = Math.round(pct / 100 * width);
+            return '\u2588'.repeat(filled) + '\u2591'.repeat(width - filled);
+        }
+
+        function pctColor(pct) {
+            if (pct >= 80) return 'color-red';
+            if (pct >= 60) return 'color-amber';
+            return 'color-green';
+        }
+
+        function updateCluster(data) {
+            if (!data || !data.nodes || data.nodes.length === 0) return;
+            const section = document.getElementById('cluster-section');
+            const nodesEl = document.getElementById('cluster-nodes');
+            const totalsEl = document.getElementById('cluster-totals');
+            section.style.display = '';
+
+            nodesEl.innerHTML = data.nodes.map(n => {
+                const cpuBar = makeBar(n.cpuPercent, 24);
+                const memBar = makeBar(n.memPercent, 24);
+                const cpuCol = pctColor(n.cpuPercent);
+                const memCol = pctColor(n.memPercent);
+                const cpuTotalM = n.cpuCores * 1000;
+                return `<div class="node-panel">
+                    <div class="node-header">+-- ${n.name} (${n.role}) ---- ${n.ip} --+</div>
+                    <div class="bar-row">
+                        <span class="bar-label">CPU</span>
+                        <span class="bar-graph ${cpuCol}">[${cpuBar}]</span>
+                        <span class="bar-pct ${cpuCol}">${n.cpuPercent}%</span>
+                    </div>
+                    <div class="bar-detail">${n.cpuUsedM}m / ${cpuTotalM}m</div>
+                    <div class="bar-row">
+                        <span class="bar-label">MEM</span>
+                        <span class="bar-graph ${memCol}">[${memBar}]</span>
+                        <span class="bar-pct ${memCol}">${n.memPercent}%</span>
+                    </div>
+                    <div class="bar-detail">${n.memUsedMi}Mi / ${n.memTotalMi}Mi</div>
+                    <div class="node-pods">PODS <span>${n.podCount}</span> running</div>
+                </div>`;
+            }).join('');
+
+            const appCount = apps.length;
+            totalsEl.innerHTML = `<span class="highlight">&gt;</span> CLUSTER: ` +
+                `<span class="val">${data.totalCpuCores}</span> cores | ` +
+                `<span class="val">${data.totalMemMi}</span>Mi | ` +
+                `<span class="val">${data.clusterCpuPercent}%</span> CPU | ` +
+                `<span class="val">${data.clusterMemPercent}%</span> MEM | ` +
+                `<span class="val">${appCount}</span> apps`;
+        }
+
+        function updateStatsBar(data) {
+            if (!data) return;
+            const cpuEl = document.getElementById('cpu-stat');
+            const memEl = document.getElementById('mem-stat');
+            if (cpuEl) cpuEl.innerHTML = `<span class="stat-value">${data.clusterCpuPercent}%</span> cpu`;
+            if (memEl) memEl.innerHTML = `<span class="stat-value">${data.clusterMemPercent}%</span> mem`;
+        }
+
+        function pollMetrics() {
+            fetch('/api/metrics')
+                .then(r => r.json())
+                .then(data => {
+                    updateCardMetrics(data);
+                    updateCluster(data);
+                    updateStatsBar(data);
+                })
+                .catch(() => {});
+        }
+
         // Fetch app list from backend, then render and start polling
         fetch('/api/apps')
             .then(r => r.json())
@@ -439,7 +659,9 @@
                 categoryOrder = data.categories || [];
                 renderApps();
                 pollStatus();
+                pollMetrics();
                 setInterval(pollStatus, 30000);
+                setInterval(pollMetrics, 30000);
             })
             .catch(() => {
                 container.innerHTML = '<div style="color:var(--red);text-align:center;padding:2rem">Failed to load apps</div>';

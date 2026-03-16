@@ -49,6 +49,17 @@ func main() {
 	<-registry.Ready()
 	go cache.RunPoller(ctx, 30*time.Second)
 
+	var metrics *MetricsCollector
+	if config != nil && cs != nil {
+		var mErr error
+		metrics, mErr = NewMetricsCollector(cs, config, registry)
+		if mErr != nil {
+			log.Printf("Failed to create metrics collector: %v — running without metrics", mErr)
+		} else {
+			go metrics.RunPoller(ctx, 30*time.Second)
+		}
+	}
+
 	mux := http.NewServeMux()
 
 	indexHTML, _ := staticFS.ReadFile("index.html")
@@ -69,6 +80,9 @@ func main() {
 
 	mux.HandleFunc("/api/apps", registry.ServeApps)
 	mux.HandleFunc("/api/status", cache.ServeStatus)
+	if metrics != nil {
+		mux.HandleFunc("/api/metrics", metrics.ServeMetrics)
+	}
 
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)

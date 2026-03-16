@@ -47,11 +47,20 @@ type AppRegistry struct {
 	mu        sync.RWMutex
 	apps      []AppDef
 	clientset kubernetes.Interface
+	ready     chan struct{}
 }
 
 // NewAppRegistry creates a registry with the given k8s client.
 func NewAppRegistry(cs kubernetes.Interface) *AppRegistry {
-	return &AppRegistry{clientset: cs}
+	return &AppRegistry{
+		clientset: cs,
+		ready:     make(chan struct{}),
+	}
+}
+
+// Ready returns a channel that closes after the first successful refresh.
+func (r *AppRegistry) Ready() <-chan struct{} {
+	return r.ready
 }
 
 // Apps returns the current snapshot of discovered apps.
@@ -66,6 +75,7 @@ func (r *AppRegistry) Apps() []AppDef {
 // RunRefresh performs an initial refresh then refreshes every interval.
 func (r *AppRegistry) RunRefresh(ctx context.Context, interval time.Duration) {
 	r.refresh(ctx)
+	close(r.ready)
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 	for {

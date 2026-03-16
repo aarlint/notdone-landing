@@ -46,10 +46,7 @@ func main() {
 	defer stop()
 
 	go registry.RunRefresh(ctx, 60*time.Second)
-
-	// Wait briefly for initial discovery before starting status poller
-	time.Sleep(100 * time.Millisecond)
-
+	<-registry.Ready()
 	go cache.RunPoller(ctx, 30*time.Second)
 
 	mux := http.NewServeMux()
